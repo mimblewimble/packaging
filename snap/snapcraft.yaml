@@ -1,5 +1,5 @@
 name: grin
-version: v3.0.0
+version: v3.1.0
 summary: Minimal implementation of the Mimblewimble protocol
 description: |
   https://grin.mw/
@@ -12,7 +12,7 @@ parts:
   grin:
     plugin: rust
     source: https://github.com/mimblewimble/grin.git
-    source-tag: v3.0.0
+    source-tag: v3.1.0
     build-packages:
       - clang
       - libncurses5-dev
@@ -20,7 +20,7 @@ parts:
   wallet:
     plugin: rust
     source: https://github.com/mimblewimble/grin-wallet.git
-    source-tag: v3.0.0
+    source-tag: v3.1.1
     build-packages:
       - clang
 
