@@ -23,6 +23,7 @@ parts:
     source-tag: v3.1.1
     build-packages:
       - clang
+      - pkg-config
 
 apps:
   grin:
