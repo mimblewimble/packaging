@@ -24,6 +24,7 @@ parts:
     build-packages:
       - clang
       - pkg-config
+      - libssl-dev
 
 apps:
   grin:
