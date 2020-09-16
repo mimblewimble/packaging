@@ -20,7 +20,7 @@ parts:
   wallet:
     plugin: rust
     source: https://github.com/mimblewimble/grin-wallet.git
-    source-tag: v4.0.0s
+    source-tag: v4.0.0
     build-packages:
       - clang
       - pkg-config
