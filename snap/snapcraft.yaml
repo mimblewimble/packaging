@@ -1,11 +1,11 @@
 name: grin
-version: v5.0.2
+version: v5.0.3
 summary: Minimal implementation of the Mimblewimble protocol
 description: |
   https://grin.mw/
 
 epoch: 3*
-confinement: strict
+confinement: classic
 grade: stable
 base: core18
 parts:
