@@ -5,7 +5,7 @@ description: |
   https://grin.mw/
 
 epoch: 3*
-confinement: classic
+confinement: strict
 grade: stable
 base: core18
 parts:
