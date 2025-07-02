@@ -1,55 +1,80 @@
 name: grin
-version: v5.1.0
-summary: Minimal implementation of the Mimblewimble protocol
+base: core22
+version: git
+summary: Grin cryptocurrency node and wallet
 description: |
-  https://grin.mw/
+  Grin is a privacy-focused cryptocurrency implementing the Mimblewimble protocol.
+  This snap provides both the reference Grin node and wallet.
+  👉 After installing this snap, you should also run:
+     'sudo snap alias grin.wallet grin-wallet'
+  to allow use of the 'grin-wallet' command as expected by most online documentation. Otherwise, use 'grin.wallet' to access the wallet.
 
-epoch: 3*
-confinement: strict
 grade: stable
-base: core18
-parts:
-  grin:
-    plugin: rust
-    source: https://github.com/mimblewimble/grin.git
-    source-tag: v5.1.0
-    build-packages:
-      - clang
-      - libncurses5-dev
-      - libncursesw5-dev
+confinement: strict
+adopt-info: grin-part
 
-  wallet:
-    plugin: rust
-    source: https://github.com/mimblewimble/grin-wallet.git
-    source-tag: v5.0.3
-    build-packages:
-      - clang
-      - pkg-config
-      - libssl-dev
-
-  tor:
-    source: https://dist.torproject.org/tor-0.4.5.6.tar.gz
-    source-checksum: sha256/22cba3794fedd5fa87afc1e512c6ce2c21bc20b4e1c6f8079d832dc1e545e733
-    source-type: tar
-    plugin: autotools
-    build-packages:
-      - libssl-dev
-      - zlib1g-dev
-    after: [libevent]
-  
-  libevent:
-    source: https://github.com/libevent/libevent/releases/download/release-2.1.12-stable/libevent-2.1.12-stable.tar.gz
-    source-checksum: sha256/92e6de1be9ec176428fd2367677e61ceffc2ee1cb119035037a27d346b0403bb
-    source-type: tar
-    plugin: autotools
+architectures:
+  - build-on: amd64
+  - build-on: arm64
 
 apps:
   grin:
-    environment:
-      LC_ALL: C.UTF-8
-      LANG: C.UTF-8
     command: bin/grin
-    plugs: [network, network-bind]
+    plugs:
+      - home              # Needed so grin can read and write configuration to /home/<user>/snap/grin/current/.grin/main/
+      - network           # Required so grin can initiate outgoing connections to peers on the Grin network.
+      - network-bind      # Required so grin can bind to network ports and accept incoming connections from peers.
+    environment:
+      GRIN_HOME: $SNAP_USER_COMMON/grin
+
   wallet:
-    command: bin/grin-wallet
-    plugs: [network, network-bind]
+    command: bin/wallet
+    aliases: [grin-wallet]
+    plugs:
+      - home              # Needed so grin-wallet can read and write wallet files to /home/<user>/snap/grin/current/.grin/main/
+      - network           # Required so grin-wallet can contact Grin nodes.
+      - network-bind      # Required so grin-wallet can be used in listener mode and accept incoming transactions via HTTP.
+    environment:
+      GRIN_HOME: $SNAP_USER_COMMON/grin
+      PATH: $SNAP/usr/bin:$PATH   # Ensures the wallet can access the bundled Tor binary from within the snap.
+
+parts:
+  grin-part:
+    plugin: rust
+    rust-channel: "stable"
+    source: https://github.com/mimblewimble/grin.git
+    source-branch: master
+    build-packages:
+      - git               # Needed to clone the grin node source code and retrieve version information.
+      - clang             # Required to compile C dependencies used by the Rust code.
+      - pkg-config        # Used to locate libraries and build configuration details.
+      - libssl-dev        # Provides OpenSSL headers required to build against OpenSSL, which Grin uses for encrypted network communication.
+      - libncursesw5-dev  # Provides ncurses wide-character support, needed for terminal-based user interfaces or logging.
+    override-pull: |
+      snapcraftctl pull
+      VERSION=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' | tr '_' '-' || echo "0.1.0")  # Extracts grin version from .git tag
+      echo "DEBUG: VERSION=$VERSION" >&2
+      craftctl set version="$VERSION"
+    override-build: |
+      cargo build --release
+      mkdir -p $SNAPCRAFT_PART_INSTALL/bin
+      cp target/release/grin $SNAPCRAFT_PART_INSTALL/bin/
+
+  grin-wallet-part:
+    plugin: rust
+    rust-channel: "stable"
+    source: https://github.com/mimblewimble/grin-wallet.git
+    source-branch: master
+    build-packages:
+      - git               # Needed to clone the grin-wallet source code.
+      - clang             # Required to compile C dependencies used by the Rust code.
+      - pkg-config        # Used to locate libraries and build configuration details.
+      - libssl-dev        # Required for OpenSSL-dependent network functions in the wallet.
+    stage-packages:
+      - tor               # Provides the Tor daemon from the official Ubuntu Core22 archive; built, signed, and security-patched by Ubuntu maintainers
+    override-pull: |
+      snapcraftctl pull
+    override-build: |
+      cargo build --release
+      mkdir -p $SNAPCRAFT_PART_INSTALL/bin
+      cp target/release/grin-wallet $SNAPCRAFT_PART_INSTALL/bin/wallet
