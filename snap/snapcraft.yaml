@@ -1,10 +1,9 @@
 name: grin
 base: core22
 version: git
-summary: Grin cryptocurrency node and wallet
-description: |
-  Grin is a privacy-focused cryptocurrency implementing the Mimblewimble protocol.
-  This snap provides both the reference Grin node and wallet.
+summary: Minimal implementation of the Mimblewimble protocol; https://grin.mw/
+description: | 
+  This snap provides the reference Grin node and wallet.
   👉 After installing this snap, you should also run:
      'sudo snap alias grin.wallet grin-wallet'
   to allow use of the 'grin-wallet' command as expected by most online documentation. Otherwise, use 'grin.wallet' to access the wallet.
@@ -71,7 +70,7 @@ parts:
       - pkg-config        # Used to locate libraries and build configuration details.
       - libssl-dev        # Required for OpenSSL-dependent network functions in the wallet.
     stage-packages:
-      - tor               # Provides the Tor daemon from the official Ubuntu Core22 archive; built, signed, and security-patched by Ubuntu maintainers
+      - tor               # Required so grin-wallet can be used in listener mode and accept incoming transactions via Tor
     override-pull: |
       snapcraftctl pull
     override-build: |
